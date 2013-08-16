@@ -63,6 +63,7 @@ deployment do
     # this runs in a Capistrano::Config context so we can override config here
     # run as root for installation
 
+    opts[:ruby_version] = fetch(:ruby_version, opts[:ruby_version])
     opts[:user]       = fetch(:user)
     opts[:repository] = fetch(:repository)
     opts[:domain]     = fetch(:domain)
@@ -78,7 +79,6 @@ deployment do
       shared_buffers: (server_memory * 0.15).to_i, # If you have less RAM ... 15% is more typical there
       effective_cache_size: 80, # On UNIX-like systems, add the free+cached numbers from free or top to get an estimate
     }.merge(fetch(:postgres_config, {}))
-    p opts
     set :user, 'root'
     set :something, "SOMETHING HERE"
   end

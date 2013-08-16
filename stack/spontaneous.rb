@@ -88,7 +88,6 @@ package :site_env do
     "SIMULTANEOUS_SOCKET" => opts[:simultaneous_socket],
     "SPONTANEOUS_BINARY" => "#{opts[:app_root]}/current/bin/spot",
     "SPONTANEOUS_SERVER" => opts[:back_socket],
-    "POST_PUBLISH_COMMAND" => "/usr/bin/sv hup #{opts[:home]}/service/enabled/front",
     "RUBY_BIN" => "/opt/rubies/#{opts[:ruby]}/bin/ruby"
   }.merge(opts[:environment] || {})
   env_dir = "#{opts[:app_root]}/config/env"
@@ -107,6 +106,7 @@ package :user_services do
   @current = "#{@spontaneous}/current"
   @back_socket = opts[:back_socket]
   @front_socket = opts[:front_socket]
+  @ruby = opts[:ruby]
 
   runner "test -d /etc/sv/#{@user}/log/main || mkdir -p /etc/sv/#{@user}/log/main"
   file "/etc/sv/#{@user}/run", contents: render(File.expand_path("../../templates/etc/sv/home/run", __FILE__)), mode: "0755"
@@ -156,7 +156,7 @@ package :publish_monitoring do
   service = "publish"
   sv = "#{@home}/service/available/#{service}"
   enabled = "#{@home}/service/enabled"
-  runner "if [ ! -f \"#{@revision_file}\" ]; then sudo -u #{user} echo 0 > #{@revision_file}; fi"
+  runner "if [ ! -f \"#{@revision_file}\" ]; then sudo -u #{user} touch #{@revision_file}; fi"
   runner "test -d #{sv}/log/main || sudo -u #{@user} mkdir -p #{sv}/log/main"
   file "#{sv}/run", contents: render(File.expand_path("../../templates/home/services/#{service}/run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
     post :install, "if [ -d \"#{enabled}/#{service}\" ];then cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}; fi"

@@ -37,6 +37,9 @@ package :ruby_install do
     custom_archive "ruby-install-#{version}.tar.gz"
     custom_install 'make install'
   end
+  verify do
+    has_executable "/usr/local/bin/ruby-install"
+  end
 end
 
 package :curl do

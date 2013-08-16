@@ -1,0 +1,25 @@
+#!/bin/bash
+
+exec 2>&1
+source /usr/local/share/chruby/chruby.sh
+
+chruby <%= @ruby %>
+cd <%= @current %>
+
+exec \
+  chpst -e <%= @spontaneous %>/config/env \
+  <%= @current %>/bin/thin \
+  --rackup <%= @current %>/config/back.ru \
+  --pid <%= @spontaneous %>/shared/pids/thin.pid \
+  --wait 30 \
+  --timeout 600 \
+  --max-conns 1024 \
+  --adapter rack \
+  --user <%= @user %> \
+  --group <%= @user %> \
+  --max-persistent-conns 512 \
+  --environment production \
+  --chdir <%= @current %> \
+  --socket <%= @back_socket %> \
+  start
+

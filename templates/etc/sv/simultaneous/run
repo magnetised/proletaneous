@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source /usr/local/share/chruby/chruby.sh
+
+chruby <%= @ruby %>
+cd <%= @root %>
+exec ./bin/simultaneous-server --socket <%= @socket %>

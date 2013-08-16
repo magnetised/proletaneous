@@ -1,0 +1,10 @@
+#!/bin/sh
+
+FILE=<%= @revision_file %>
+
+exec /usr/bin/inotifywait -q -m -e close_write $FILE | while read file; do
+  echo "Published revision `cat $FILE` ... Restarting front server ..."
+  # Puma restarts when it recieves a SIGUSER2
+  # https://github.com/puma/puma#restart
+  /usr/bin/sv 2 <%= @home %>/service/enabled/front
+done

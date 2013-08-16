@@ -1,0 +1,18 @@
+#!/bin/bash
+
+exec 2>&1
+source /usr/local/share/chruby/chruby.sh
+
+chruby <%= @ruby %>
+cd <%= @current %>
+
+exec \
+  chpst -e <%= @spontaneous %>/config/env \
+  <%= @current %>/bin/puma \
+  --bind unix://<%= @front_socket %> \
+  --dir <%= @current %> \
+  --environment production \
+  --pid <%= @spontaneous %>/shared/pids/puma.pid \
+  <%= @current %>/config/back.ru
+
+

@@ -119,11 +119,14 @@ package :user_services do
   %w(back front).each do |service|
     sv = "#{@home}/service/available/#{service}"
     runner "test -d #{sv}/log/main || sudo -u #{@user} mkdir -p #{sv}/log/main"
-    file "#{sv}/run", contents: render(File.expand_path("../../templates/home/services/#{service}/run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
-      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service}"
+    file "#{sv}/run", contents: render(File.expand_path("../../templates/home/services/#{service}/run", __FILE__)),
+      owner: [@user, @user].join(":"), mode: "0755" do
+      # this command often returns an error because the process takes too long to quit (hence the 'force-' part)
+      # however this error is (usually..) spurious so we can just ignore it with the '|| true'
+      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service} || true"
     end
     file "#{sv}/log/run", contents: File.read(File.expand_path("../../templates/sv-log-run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
-      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service}/log"
+      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service}/log || true"
     end
     runner "sudo -u #{@user} ln -nfs #{sv} #{enabled}"
   end

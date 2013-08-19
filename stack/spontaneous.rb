@@ -120,10 +120,10 @@ package :user_services do
     sv = "#{@home}/service/available/#{service}"
     runner "test -d #{sv}/log/main || sudo -u #{@user} mkdir -p #{sv}/log/main"
     file "#{sv}/run", contents: render(File.expand_path("../../templates/home/services/#{service}/run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
-      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}"
+      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service}"
     end
     file "#{sv}/log/run", contents: File.read(File.expand_path("../../templates/sv-log-run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
-      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}/log"
+      post :install, "cd #{enabled} && sudo -u #{user} /usr/bin/sv force-restart ./#{service}/log"
     end
     runner "sudo -u #{@user} ln -nfs #{sv} #{enabled}"
   end

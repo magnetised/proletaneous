@@ -12,6 +12,7 @@ package :postgres, :provides => :database do
   requires :install_postgres, opts
   requires :configure_postgres, opts
   requires :configure_authentication, opts
+  requires :wal_e, opts
 end
 
 package :install_postgres do
@@ -56,4 +57,77 @@ package :configure_authentication do
   verify do
     file_contains hba, (TRUST % ['all'])
   end
+end
+
+package :wal_e do
+  requires :pipe_viewer, opts
+  requires :lzop, opts
+  requires :libevent, opts
+  requires :wal_e_dependencies, opts
+  requires :wal_e_env, opts
+  requires :wal_e_command, opts
+  requires :wal_e_crontab, opts
+end
+
+# make base backup every day @ 2am
+package :wal_e_crontab do
+  tmpfile = "/tmp/wal-e.cron"
+  # need to delete older backups. something like the following will get the list of backup names
+  #
+  # $(/usr/bin/chpst -e /etc/wal-e.d/env /usr/local/bin/wal-e backup-list | sed '1d' | awk '{print $1}')
+  #
+  # then I need to run 'delete before':
+  #
+  # /usr/bin/chpst -e /etc/wal-e.d/env /usr/local/bin/wal-e delete before base_00000004000002DF000000A6_03626144
+  crontab = [
+     "0 2 * * * /usr/bin/chpst -e /etc/wal-e.d/env /usr/local/bin/wal-e backup-push /var/lib/postgresql/9.1/main"
+  ].join("\n")
+  file tmpfile, contents: crontab << "\n"
+  runner "crontab -u postgres #{tmpfile} ; rm #{tmpfile}"
+end
+
+package :wal_e_command do
+  runner "easy_install wal-e"
+  verify do
+    has_executable "wal-e"
+  end
+end
+
+package :wal_e_env do
+  env_dir = "/etc/wal-e.d/env"
+  env = opts[:production_env]
+  if env # first run is without opts
+    runner "test -d #{env_dir} || mkdir -p #{env_dir}"
+    %w(WALE_AWS_ACCESS_KEY_ID WALE_AWS_SECRET_ACCESS_KEY WALE_WALE_S3_PREFIX).each do |k|
+      raise "Missing environment setting '#{k}'" if !env.key?(k)
+      key, value = k.gsub(/^WALE_/, ''), env[k]
+      file "#{env_dir}/#{key}", contents: value, owner: "root:postgres", mode: "0640"
+    end
+  end
+end
+
+package :pipe_viewer do
+  apt "pv"
+  verify do
+    has_apt "pv"
+  end
+end
+
+package :lzop do
+  apt "lzop"
+  verify do
+    has_apt "lzop"
+  end
+end
+
+package :libevent do
+  apt %w(libevent-dev libevent-core-2.0-5)
+  verify do
+    has_apt "libevent-dev"
+  end
+end
+
+package :wal_e_dependencies do
+  runner "easy_install boto"
+  runner "easy_install gevent"
 end

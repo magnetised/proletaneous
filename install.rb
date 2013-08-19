@@ -17,6 +17,9 @@ require 'stack/vim'
 # Get current simultaneous version
 require 'simultaneous'
 
+# Use dotenv to load production env settings
+require 'dotenv'
+
 # install the version of ruby that we're using to develop locally
 ruby_version = "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}"
 ruby         = "ruby-#{ruby_version}"
@@ -81,7 +84,9 @@ deployment do
       effective_cache_size: 80, # On UNIX-like systems, add the free+cached numbers from free or top to get an estimate
     }.merge(fetch(:postgres_config, {}))
     set :user, 'root'
-    set :something, "SOMETHING HERE"
+
+    env = Dotenv::Environment.new(fetch(:production_env_file)) if File.exist?(fetch(:production_env_file))
+    opts[:production_env] = env
   end
 
   source do

@@ -7,7 +7,7 @@
 
 $:<< File.join(File.dirname(__FILE__))
 
-%w(essential scm system_update postgresql nginx runit chruby simultaneous user spontaneous).each do |lib|
+%w(essential scm system_update graphics_magick postgresql nginx runit chruby simultaneous user spontaneous).each do |lib|
   require "stack/#{lib}"
 end
 
@@ -43,6 +43,7 @@ policy :spontaneous, roles: :app do
   requires :essential
   requires :editor
   requires :scm
+  requires :image_processing, {}, opts
   # Slightly weird params... the first hash are taken as opts for sprinkle
   # the second is passed to the package itself
   requires :ruby,         {}, opts

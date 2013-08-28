@@ -13,6 +13,6 @@ exec \
   --dir <%= @current %> \
   --environment production \
   --pid <%= @spontaneous %>/shared/pids/puma.pid \
-  <%= @current %>/config/back.ru
+  <%= @current %>/config/front.ru
 
 

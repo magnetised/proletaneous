@@ -2,6 +2,7 @@ package :essential do
   requires :build_essential
   requires :libxml
   requires :inotify_tools
+  requires :misc_tools
 end
 
 package :build_essential do
@@ -23,6 +24,14 @@ end
 
 package :inotify_tools do
   pkg = %w(inotify-tools)
+  apt pkg
+  verify do
+    pkg.each { |p| has_apt p }
+  end
+end
+
+package :misc_tools do
+  pkg = %w(htop)
   apt pkg
   verify do
     pkg.each { |p| has_apt p }

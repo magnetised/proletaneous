@@ -24,3 +24,6 @@ You need to add the following keys:
     WALE_WALE_S3_PREFIX=s3://bucket-name-without-dots/prefix
 
 The `WALE_` prefix is a namespace and the actual env settings drop it.
+
+I've had trouble getting WAL-E to work with anything other than a bucket based in the default region
+and for some reason its best to go with a bucket name without any dots.

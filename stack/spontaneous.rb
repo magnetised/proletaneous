@@ -161,9 +161,13 @@ package :publish_monitoring do
   enabled = "#{@home}/service/enabled"
   runner "if [ ! -f \"#{@revision_file}\" ]; then sudo -u #{user} touch #{@revision_file}; fi"
   runner "test -d #{sv}/log/main || sudo -u #{@user} mkdir -p #{sv}/log/main"
+
   file "#{sv}/run", contents: render(File.expand_path("../../templates/home/services/#{service}/run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
     post :install, "if [ -d \"#{enabled}/#{service}\" ];then cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}; fi"
   end
+
+  file "#{sv}/finish", contents: render(File.expand_path("../../templates/home/services/#{service}/finish", __FILE__)), owner: [@user, @user].join(":"), mode: "0755"
+
   file "#{sv}/log/run", contents: File.read(File.expand_path("../../templates/sv-log-run", __FILE__)), owner: [@user, @user].join(":"), mode: "0755" do
     # post :install, "test -d #{enabled}/#{service}/log && cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}/log"
     post :install, "if [ -d \"#{enabled}/#{service}/log\" ];then cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}/log; fi"

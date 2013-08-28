@@ -1,10 +1,7 @@
 #!/bin/sh
 
 FILE=<%= @revision_file %>
-
-exec /usr/bin/inotifywait -q -m -e close_write $FILE | while read file; do
-  echo "Published revision `cat $FILE` ... Restarting front server ..."
-  # Puma restarts when it recieves a SIGUSER2
-  # https://github.com/puma/puma#restart
-  /usr/bin/sv 2 <%= @home %>/service/enabled/front
-done
+# This runs until the watched file changes and then exits
+# At exit runit will run the `finish` script
+# and restart the service
+exec /usr/bin/inotifywait -q -q -e close_write $FILE

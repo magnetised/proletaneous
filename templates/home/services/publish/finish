@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# This is run when the inotify service terminates
+# The exit_status is 0 if the service terminated normally
+# This occurs when the file changes, if the service is being started or
+# restarted then the codes are != 0
+
+exit_code=$1
+exit_status=$2
+
+FILE=<%= @revision_file %>
+
+if [ "$exit_status" = 0 ]; then
+  echo "Published revision $(cat $FILE) ... Restarting front server ..."
+  # Puma restarts when it recieves a SIGUSER2
+  # https://github.com/puma/puma#restart
+  /usr/bin/sv 2 <%= @home %>/service/enabled/front
+fi

@@ -11,8 +11,10 @@ package :spontaneous do
   requires :dependencies,   opts.merge(config)
   requires :site_env,       opts.merge(config)
   requires :user_services,  opts.merge(config)
-  requires :site_nginx_config,  opts.merge(config)
+  requires :site_nginx_config,   opts.merge(config)
   requires :publish_monitoring,  opts.merge(config)
+  requires :cron_jobs,           opts.merge(config)
+  requires :log_rotation,        opts.merge(config)
 end
 
 package :app_skeleton do
@@ -173,4 +175,40 @@ package :publish_monitoring do
     post :install, "if [ -d \"#{enabled}/#{service}/log\" ];then cd #{enabled} && sudo -u #{user} /usr/bin/sv restart ./#{service}/log; fi"
   end
   runner "sudo -u #{@user} ln -nfs #{sv} #{enabled}"
+end
+
+
+package :cron_jobs do
+  tmpfile = "/tmp/spontaneous.cron"
+  template_revisions_to_keep = 5
+
+  @home = opts[:home]
+  @spontaneous = "#{@home}/spontaneous"
+
+  crontab = [
+    "# Delete all but last #{template_revisions_to_keep} rendered revisions",
+    "0 0 * * * ls -1dt #{@spontaneous}/revisions/* | awk '/[0-9]+$/ {print $0}' | tail -n +#{template_revisions_to_keep} | xargs rm -rf"
+  ].join("\n")
+  file tmpfile, contents: crontab << "\n"
+  runner "crontab -u #{opts[:user]} #{tmpfile} ; rm #{tmpfile}"
+end
+
+
+package :log_rotation do
+  @user = user = opts[:user]
+  @home = opts[:home]
+  @spontaneous = "#{@home}/spontaneous"
+  conf = (<<-CONF)
+#{@spontaneous}/shared/log/*.log {
+  # rotate weekly
+  weekly
+  # keep 4 logs
+  missingok
+  rotate 4
+  compress
+  notifempty
+  create 640 #{user} #{user}
+}
+  CONF
+  file "/etc/logrotate.d/#{user}", contents: conf, mode: '0644'
 end

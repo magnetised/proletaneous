@@ -7,7 +7,7 @@
 
 $:<< File.join(File.dirname(__FILE__))
 
-%w(essential scm system_update imagemagick image_optimization xapian postgresql nginx runit chruby simultaneous user spontaneous).each do |lib|
+%w(swap essential scm system_update imagemagick image_optimization xapian postgresql nginx runit chruby simultaneous user spontaneous).each do |lib|
   require "stack/#{lib}"
 end
 
@@ -43,6 +43,7 @@ end
 policy :spontaneous, roles: :app do
   # REENABLE AFTER DEV
   # requires :system_update
+  requires :swap,               {}, opts
   requires :essential
   requires :editor
   requires :scm

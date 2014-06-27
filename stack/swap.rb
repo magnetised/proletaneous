@@ -15,6 +15,7 @@ package :swap do
   runner %(if [ ! -f "#{swapfile}" ]; then #{generate_swapfile} && #{set_permissions}; fi)
   runner %(mkswap #{swapfile} && swapon #{swapfile})
   push_text "/swapfile       none    swap    sw      0       0", "/etc/fstab"
+  runner "echo 0 > /proc/sys/vm/swappiness"
 
   verify do
     has_swapfile(swapfile)

@@ -1,3 +1,5 @@
+require 'yaml'
+
 package :spontaneous do
   config = {
     home: "/home/#{opts[:user]}",

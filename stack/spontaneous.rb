@@ -139,6 +139,12 @@ package :user_services do
 end
 
 package :site_nginx_config do
+  requires :nginx_auth, opts
+  auth = opts.fetch(:nginx_opts, {})[:auth]
+  if auth
+    htpasswd = File.join(opts[:home], "spontaneous", "config", "htpasswd")
+    auth[:htpasswd] = htpasswd
+  end
   @home = opts[:home]
   @spontaneous = "#{@home}/spontaneous"
   @current = "#{@spontaneous}/current"
@@ -149,10 +155,20 @@ package :site_nginx_config do
     conf = "#{opts[:site_id]}-#{service}.conf"
     file "/etc/nginx/sites-available/#{conf}", contents: render(File.expand_path("../../templates/etc/nginx/#{service}.conf", __FILE__))
     runner "ln -nfs /etc/nginx/sites-available/#{conf} /etc/nginx/sites-enabled/#{conf}" do
-      post :install, ""
+      # post :install, "/usr/bin/sv restart nginx"
     end
   end
+  # really need a way to notify nginx to restart or not
+  runner "/usr/bin/sv restart nginx"
+end
 
+package :nginx_auth do
+  auth = opts.fetch(:nginx_opts, {})[:auth]
+  if auth
+    htpasswd = auth[:htpasswd]
+    p [:auth, auth, htpasswd]
+    runner "htpasswd -cb #{htpasswd} #{auth[:user]} #{auth[:password]} && chown #{opts[:user]}:#{opts[:user]} #{htpasswd} && chmod 0644 #{htpasswd}"
+  end
 end
 
 package :publish_monitoring do

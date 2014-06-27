@@ -82,6 +82,7 @@ deployment do
     # values without hand-coding
     server_memory = fetch(:server_memory_mb)
     opts[:server_memory_mb] = server_memory
+    opts[:nginx_opts] = fetch(:nginx_opts, {})
     opts[:postgres_config] = {
       shared_buffers: (server_memory * 0.15).to_i, # If you have less RAM ... 15% is more typical there
       effective_cache_size: 80, # On UNIX-like systems, add the free+cached numbers from free or top to get an estimate

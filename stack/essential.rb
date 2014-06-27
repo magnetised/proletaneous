@@ -31,7 +31,7 @@ package :inotify_tools do
 end
 
 package :misc_tools do
-  pkg = %w(htop)
+  pkg = %w(htop apache2-utils)
   apt pkg
   verify do
     pkg.each { |p| has_apt p }

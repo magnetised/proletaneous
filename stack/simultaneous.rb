@@ -1,12 +1,16 @@
 package :simultaneous do
-  @simultaneous_version = opts[:simultaneous_version]
   root = '/root/simultaneous'
+  requires :simultaneous_dir, opts.merge(simultaneous_root: root)
+  requires :simultaneous_install, opts.merge(simultaneous_root: root)
+  requires :simultaneous_runit, opts.merge(simultaneous_root: root)
+end
+
+package :simultaneous_dir do
+  @simultaneous_version = opts[:simultaneous_version]
+  root = opts[:simultaneous_root]
   runner "test -d #{root} || mkdir #{root}"
   file "#{root}/Gemfile", content: render(File.expand_path("../../templates/root/simultaneous/Gemfile", __FILE__)) do
   end
-  requires :simultaneous_install, opts.merge(simultaneous_root: root)
-  requires :simultaneous_runit, opts.merge(simultaneous_root: root)
-  runner "sv restart simultaneous"
 end
 
 package :simultaneous_install do
@@ -31,5 +35,5 @@ package :simultaneous_runit do
   file "#{service}/run", contents: render(File.expand_path("../../templates/etc/sv/simultaneous/run", __FILE__)), mode: "0755"
   file "#{log}/run", contents: File.read(File.expand_path("../../templates/sv-log-run", __FILE__)), mode: "0755"
   runner "ln -nfs #{available}/#{name} #{enabled}"
+  runner "sv restart simultaneous"
 end
-

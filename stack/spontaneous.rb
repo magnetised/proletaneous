@@ -151,15 +151,15 @@ package :site_nginx_config do
   @back_socket = opts[:back_socket]
   @front_socket = opts[:front_socket]
   @opts = opts
-  %w(back front).each do |service|
+  %w(front back).each_with_index do |service, n|
     conf = "#{opts[:site_id]}-#{service}.conf"
     file "/etc/nginx/sites-available/#{conf}", contents: render(File.expand_path("../../templates/etc/nginx/#{service}.conf", __FILE__))
-    runner "ln -nfs /etc/nginx/sites-available/#{conf} /etc/nginx/sites-enabled/#{conf}" do
+    runner "ln -nfs /etc/nginx/sites-available/#{conf} /etc/nginx/sites-enabled/#{n.to_s.rjust(2, '0')}-#{conf}" do
       # post :install, "/usr/bin/sv restart nginx"
     end
   end
   # really need a way to notify nginx to restart or not
-  runner "/usr/bin/sv restart nginx"
+  runner "systemctl restart nginx"
 end
 
 package :nginx_auth do

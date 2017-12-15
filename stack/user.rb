@@ -1,27 +1,29 @@
 package :user do
-  requires :create_shared_group, opts
+  # requires :create_shared_group, opts
   requires :create_user, opts
   requires :add_keys, opts
   requires :known_hosts, opts
   requires :default_environment, opts
+  requires :ruby_commands, opts
+
 end
 
 package :create_shared_group do
-  @user, @group = opts[:user], opts[:group]
-  add_group @group
-  verify do
-    has_group @group
-  end
+  # @user, @group = opts[:user], opts[:group]
+  # add_group @group
+  # verify do
+  #   has_group @group
+  # end
 end
 
 package :create_user do
   @user, @group = opts[:user], opts[:group]
-  add_user  @user, :flags => "--disabled-password"
-  runner "usermod -a -G #{@group} #{@user}"
+  # add_user  @user, :flags => "--disabled-password"
+  # runner "usermod -a -G #{@group} #{@user}"
 
-  verify do
-    has_user @user
-  end
+  # verify do
+  #   has_user @user
+  # end
 end
 
 package :add_keys do
@@ -49,4 +51,9 @@ package :default_environment do
   verify do
     has_file "/etc/profile.d/spontaneous_env.sh"
   end
+end
+
+
+package :ruby_commands do
+
 end

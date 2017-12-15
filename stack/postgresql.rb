@@ -40,7 +40,7 @@ package :configure_postgres do
   end
   @opts = opts
   @config = opts.fetch(:postgres_config, {})
-  file '/etc/postgresql/9.1/main/postgresql.conf', contents: render(File.expand_path("../../templates/etc/postgresql/postgresql.conf", __FILE__)) do
+  file '/etc/postgresql/9.5/main/postgresql.conf', contents: render(File.expand_path("../../templates/etc/postgresql/postgresql.conf", __FILE__)) do
     post :install, 'service postgresql restart'
   end
 end
@@ -49,7 +49,7 @@ end
 TRUST = 'local   all             %s                                     trust'
 
 package :configure_authentication do
-  hba =  '/etc/postgresql/9.1/main/pg_hba.conf'
+  hba =  '/etc/postgresql/9.5/main/pg_hba.conf'
   replace_text 'local   all             postgres                                peer', TRUST % ['postgres'], hba
   replace_text 'local   all             all                                     peer', TRUST % ['all'], hba do
     post :install, 'service postgresql restart'
@@ -60,6 +60,7 @@ package :configure_authentication do
 end
 
 package :wal_e do
+  requires :wal_e_python, opts
   requires :pipe_viewer, opts
   requires :lzop, opts
   requires :libevent, opts
@@ -67,6 +68,14 @@ package :wal_e do
   requires :wal_e_env, opts
   requires :wal_e_command, opts
   requires :wal_e_crontab, opts
+end
+
+package :wal_e_python do
+  pkg = %w(python3.5 python3.5-dev python3-setuptools python3-pip)
+  apt pkg
+  verify do
+    pkg.each { |p| has_apt(p) }
+  end
 end
 
 # make base backup every day @ 2am
@@ -92,7 +101,7 @@ package :wal_e_crontab do
   wal_e = "/usr/bin/chpst -e /etc/wal-e.d/env /usr/local/bin/wal-e"
   crontab = [
      "# Make a base backup of the db every night at midnight",
-     "0 0 * * * #{wal_e} backup-push /var/lib/postgresql/9.1/main",
+     "0 0 * * * #{wal_e} backup-push /var/lib/postgresql/9.5/main",
      "# Delete old backups every night at 3am, keeping #{backup_days_to_keep} days",
      "0 3 * * * #{wal_e} delete --confirm before $(#{wal_e} backup-list | sed '1d' | tail -#{backup_days_to_keep} | head -1 | awk '{print $1}' )"
   ].join("\n")
@@ -102,7 +111,7 @@ package :wal_e_crontab do
 end
 
 package :wal_e_command do
-  runner "easy_install wal-e"
+  runner "pip3 install wal-e[aws]"
   verify do
     has_executable "wal-e"
   end
@@ -113,7 +122,7 @@ package :wal_e_env do
   env = opts[:production_env]
   if env # first run is without opts
     runner "test -d #{env_dir} || mkdir -p #{env_dir}"
-    %w(WALE_AWS_ACCESS_KEY_ID WALE_AWS_SECRET_ACCESS_KEY WALE_WALE_S3_PREFIX).each do |k|
+    %w(WALE_AWS_ACCESS_KEY_ID WALE_AWS_SECRET_ACCESS_KEY WALE_WALE_S3_PREFIX WALE_AWS_REGION).each do |k|
       raise "Missing environment setting '#{k}'" if !env.key?(k)
       key, value = k.gsub(/^WALE_/, ''), env[k]
       file "#{env_dir}/#{key}", contents: value, owner: "root:postgres", mode: "0640"
@@ -143,6 +152,6 @@ package :libevent do
 end
 
 package :wal_e_dependencies do
-  runner "easy_install boto"
-  runner "easy_install gevent"
+  # runner "easy_install boto"
+  # runner "easy_install gevent"
 end

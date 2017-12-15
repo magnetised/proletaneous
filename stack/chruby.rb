@@ -15,6 +15,7 @@ package :chruby, provides: :ruby do
     has_file "/usr/local/share/chruby/chruby.sh"
   end
   requires :ruby_version, opts
+  requires :ruby_bundler, opts
 end
 
 package :ruby_version do
@@ -23,10 +24,18 @@ package :ruby_version do
   ruby    = opts[:ruby]
   install_dir =  "/opt/rubies/#{ruby}"
   runner "ruby-install ruby #{version}"
-  runner %(#{install_dir}/bin/gem install bundler --no-rdoc --no-ri)
   runner %(echo "chruby #{ruby}" > /etc/profile.d/01-default-ruby.sh)
   verify do
     has_executable "#{install_dir}/bin/ruby"
+  end
+end
+
+package :ruby_bundler do
+  ruby    = opts[:ruby]
+  install_dir =  "/opt/rubies/#{ruby}"
+  runner %(#{install_dir}/bin/gem install bundler --no-rdoc --no-ri)
+  verify do
+    has_executable "#{install_dir}/bin/bundle"
   end
 end
 

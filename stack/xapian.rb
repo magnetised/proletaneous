@@ -12,9 +12,9 @@ package :xapian_dependencies do
 end
 
 package :xapian_library do
-  apt %(libxapian22 libxapian-dev)
+  packages = %w(libxapian22v5 libxapian-dev)
+  apt packages
   verify do
-    has_apt "libxapian22"
-    has_apt "libxapian-dev"
+    packages.each { |package| has_apt package }
   end
 end

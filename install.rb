@@ -7,7 +7,7 @@
 
 $:<< File.join(File.dirname(__FILE__))
 
-%w(swap essential scm system_update imagemagick image_optimization xapian postgresql nginx runit chruby simultaneous user spontaneous).each do |lib|
+%w(swap essential scm system_update imagemagick image_optimization xapian postgresql nginx runit chruby simultaneous user spontaneous letsencrypt).each do |lib|
   require "stack/#{lib}"
 end
 
@@ -21,7 +21,7 @@ require 'simultaneous'
 require 'dotenv'
 
 # install the version of ruby that we're using to develop locally
-ruby_version = "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}"
+ruby_version = "#{RUBY_VERSION}"
 ruby         = "ruby-#{ruby_version}"
 
 
@@ -36,15 +36,12 @@ opts = {
   secure: false
 }
 
-policy :db, roles: :db do
-  requires :database, {}, opts
-end
-
 policy :spontaneous, roles: :app do
   # REENABLE AFTER DEV
   # requires :system_update
   requires :swap,               {}, opts
   requires :essential
+  requires :process_manager,    {}, opts
   requires :editor
   requires :scm
   requires :image_processing,   {}, opts
@@ -57,7 +54,13 @@ policy :spontaneous, roles: :app do
   requires :user,         {}, opts
   requires :webserver,    {}, opts
   requires :spontaneous,  {}, opts
+  requires :letsencrypt,  {}, opts
 end
+
+policy :db, roles: :db do
+  requires :database, {}, opts
+end
+
 
 deployment do
   delivery :capistrano do
